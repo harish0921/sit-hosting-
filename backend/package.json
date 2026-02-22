@@ -1,0 +1,23 @@
+{
+  "name": "sit-backend",
+  "version": "1.0.0",
+  "description": "Backend for SIT Shanthi IT Solution",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Harish",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^6.10.1"
+  }
+}
