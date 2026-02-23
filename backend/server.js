@@ -1,4 +1,5 @@
 // server.js
+
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -6,30 +7,52 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// --------------------
+// MIDDLEWARE
+// --------------------
+app.use(cors({
+  origin: "*", // change to your frontend domain in production
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
 app.use(express.json());
 
-// POST /send
+// --------------------
+// HEALTH CHECK ROUTE
+// --------------------
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Backend server is running 🚀" });
+});
+
+// --------------------
+// CONTACT FORM ROUTE
+// --------------------
 app.post("/send", async (req, res) => {
-  const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ message: "All fields are required!" });
-  }
-
   try {
+    const { name, email, message } = req.body;
+
+    // Validation
+    if (!name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required!"
+      });
+    }
+
+    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER, // your Gmail
-        pass: process.env.EMAIL_PASS, // App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // Gmail App Password
       },
     });
 
+    // Mail options
     const mailOptions = {
       from: `"${name}" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // send to yourself
+      to: process.env.EMAIL_USER,
       subject: "New Contact Form Message",
       html: `
         <h3>New Message from Website</h3>
@@ -39,17 +62,28 @@ app.post("/send", async (req, res) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: "Email sent successfully!" });
+    res.status(200).json({
+      success: true,
+      message: "Email sent successfully!"
+    });
+
   } catch (error) {
-    console.error("Error sending email:", error);
-    res.status(500).json({ message: "Error sending email. Check server logs." });
+    console.error("Email error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Try again later."
+    });
   }
 });
 
-// Start server
+// --------------------
+// START SERVER
+// --------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
